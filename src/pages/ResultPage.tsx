@@ -1,15 +1,17 @@
-import React,{useState} from 'react';
-import { motion,AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Smile, Frown, Award } from 'lucide-react';
 import Confetti from 'react-confetti';
 import AnswerReviewPopup from './AnswerReviewPopup';
 
+// Define interfaces for Question and ResultPageProps
 interface Question {
     text: string;
     options: string[];
     correctAnswer: number | number[];
 }
+
 interface ResultPageProps {
     totalQuestions: number;
     attemptedQuestions: number;
@@ -22,6 +24,7 @@ interface ResultPageProps {
     userAnswers: (number | null)[];
 }
 
+// Define the ResultPage component
 const ResultPage: React.FC<ResultPageProps> = ({
   totalQuestions,
   attemptedQuestions,
@@ -31,12 +34,18 @@ const ResultPage: React.FC<ResultPageProps> = ({
   questions,
   userAnswers
 }) => {
+  // State to control the visibility of the answer review popup
   const [showAnswerReview, setShowAnswerReview] = useState(false);
+
+  // Format user answers to always be an array
   const formattedUserAnswers: (number[] | null)[] = userAnswers.map(answer => 
     answer !== null ? [answer] : null
   );
+
+  // Calculate the score as a percentage
   const score = Math.round((correctAnswers / totalQuestions) * 100);
 
+  // Function to determine the result message based on the score
   const getResultMessage = () => {
     if (score <= 50) {
       return {
@@ -61,6 +70,7 @@ const ResultPage: React.FC<ResultPageProps> = ({
 
   const { icon, message, animation } = getResultMessage();
 
+  // Define animation variants for different score ranges
   const animationVariants = {
     shake: {
       x: [0, -10, 10, -10, 10, 0],
@@ -76,6 +86,7 @@ const ResultPage: React.FC<ResultPageProps> = ({
     }
   };
 
+  // Component to display circular result
   const CircleResult = ({ value, total, label }: { value: number, total: number, label: string }) => (
     <div className="flex flex-col items-center mb-6">
       <h3 className="text-lg font-semibold mb-2 text-purple-800">{label}</h3>
@@ -91,13 +102,18 @@ const ResultPage: React.FC<ResultPageProps> = ({
 
   return (
     <div className="min-h-screen bg-purple-50 flex flex-col">
+      {/* Show confetti for high scores */}
       {score > 75 && <Confetti numberOfPieces={200} recycle={false} />}
+      
+      {/* Navigation bar */}
       <nav className="bg-purple-700 shadow-md p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold text-white">Exam Results</h1>
           <Link to="/mock-exam" className="text-white hover:text-purple-200 transition duration-300">Go Back to Home</Link>
         </div>
       </nav>
+      
+      {/* Main content */}
       <div className="flex-grow flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -105,6 +121,7 @@ const ResultPage: React.FC<ResultPageProps> = ({
           transition={{ duration: 0.5 }}
           className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full"
         >
+          {/* Animated icon */}
           <motion.div
             className="flex justify-center mb-6"
             variants={animationVariants}
@@ -112,6 +129,8 @@ const ResultPage: React.FC<ResultPageProps> = ({
           >
             {icon}
           </motion.div>
+          
+          {/* Result message */}
           <motion.p 
             className="text-center text-xl font-semibold mb-8 text-purple-600 italic"
             initial={{ opacity: 0, scale: 0.5 }}
@@ -120,6 +139,8 @@ const ResultPage: React.FC<ResultPageProps> = ({
           >
             {message}
           </motion.p>
+          
+          {/* Circular result displays */}
           <div className="flex flex-col sm:flex-row justify-around mb-6">
             <CircleResult 
               value={attemptedQuestions} 
@@ -132,6 +153,8 @@ const ResultPage: React.FC<ResultPageProps> = ({
               label="Marks Scored" 
             />
           </div>
+          
+          {/* Time spent */}
           <motion.p 
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -140,6 +163,8 @@ const ResultPage: React.FC<ResultPageProps> = ({
           >
             <strong>Time Spent:</strong> {Math.floor(timeSpent / 60)} minutes {timeSpent % 60} seconds
           </motion.p>
+          
+          {/* Button to check answers */}
           <motion.button
             onClick={() => setShowAnswerReview(true)}
             className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full transition duration-300"
@@ -150,6 +175,8 @@ const ResultPage: React.FC<ResultPageProps> = ({
           </motion.button>
         </motion.div>
       </div>
+      
+      {/* Answer review popup */}
       <AnimatePresence>
         {showAnswerReview && (
         <AnswerReviewPopup

@@ -1,46 +1,46 @@
-# Getting Started with Create React App
+#Quiz App 
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+#File Structure 
+->quizSchoolNet
+  ->public
+  ->src
+    ->components
+        ->MockExamCard.tsx
+    ->pages
+        ->AnswerReviewPopup.tsx
+        ->ExamDetails.tsx
+        ->ExamPage.tsx
+        ->MockExamCardHolder.tsx
+        ->ResultPage.tsx
+    ->App.tsx
+    ->index.tsx
+  ->package.json
+  ->tailwind.config.js
+  ->tsconfig.json
 
-## Available Scripts
 
-In the project directory, you can run:
+#Key features of the Quiz App:
 
-### `npm start`
+-> Auto updation to next question once a answer is selected
+-> Progress bar to check the number of question attempted 
+-> Question pallete icon at the top right corner which shows the number of questions, questions marked for review & help navigate through different questions.
+-> Moon icon to convert to dark mode and a sun icon to convert to light mode.
+-> Timer to check amount of time left.
+-> Green card if the answered question is correct & red color if the answered question is wrong in real time.
+-> Book mark feature
+-> Single choice, Multiple choice, True False all kinda question accomodated.
+-> Animations used on result page to make it more attractive.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+#Code flow 
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+-> The moment you enter the app , you are routed to /mock-exam page which has multiple mock exams . 
+-> Once you click on start button in any of the mock exam , you are directed to /examId page i.e /example page in this app 
+-> Now on clicking continue button you are navigated to /example/start page which hold questions which needs to be answered . 
+-> On submission a result page pops up which has some animations , your test score, number of questions attempted & correct solution to each question. This page also has go back to home option in the navigation bar which takes users back to /mock-exam page .
 
-### `npm test`
+#Error Handling 
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+-> If by any chance questions content is not received in the code then we direct user to page saying no exam found.
+-> One cannot select multiple answers in a single question.
+-> Once a answer is given user can change it .
+-> In multiple correct solution if a user marks even a single incorrect solution then he/she can't attempt it further .

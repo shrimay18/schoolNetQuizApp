@@ -4,9 +4,7 @@ import { BookmarkIcon, Info, FileText,X, ArrowLeft,ArrowRight } from 'lucide-rea
 import ResultPage from './ResultPage';
 import { Sun, Moon } from 'lucide-react';
 
-interface ReferenceModalProps {
-  onClose: () => void;
-}
+// Define types for single-answer and multiple-answer questions
 interface SingleAnswerQuestion {
   id: number;
   text: string;
@@ -25,6 +23,7 @@ interface MultipleAnswerQuestion {
 
 type Question = SingleAnswerQuestion | MultipleAnswerQuestion;
 
+// Mock questions data (in a real application, this would likely come from an API)
 const mockQuestions: Question[] = [
   {
     id: 1,
@@ -77,8 +76,8 @@ const mockQuestions: Question[] = [
   },
   {
     id: 8,
-    text: "What is the largest mammal in the world?",
-    options: ["Elephant", "Blue whale", "Giraffe", "Hippopotamus"],
+    text: "Is Elephant the largest mammal in the world?",
+    options: ["True","False"],
     correctAnswer: 1,
     multipleCorrect: false
   },
@@ -99,10 +98,13 @@ const mockQuestions: Question[] = [
 ];
 
 const ExamPage: React.FC = () => {
+  // Extract examId from URL parameters
   const { examId } = useParams<{ examId: string }>();
+
+  // State variables
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<(number[] | null)[]>(new Array(mockQuestions.length).fill(null));
-  const [timeLeft, setTimeLeft] = useState(3600); // 1 hour in seconds
+  const [timeLeft, setTimeLeft] = useState(3600); 
   const [showTimer, setShowTimer] = useState(true);
   const [bookmarks, setBookmarks] = useState<number[]>([]);
   const [showResult, setShowResult] = useState(false);
@@ -110,15 +112,18 @@ const ExamPage: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [palettePosition, setPalettePosition] = useState({ top: 0, left: 0 });
-  const infoBtnRef = useRef<HTMLButtonElement>(null);
-  const paletteRef = useRef<HTMLDivElement>(null);
   const [canProceed, setCanProceed] = useState(true);
   const [answerStatus, setAnswerStatus] = useState<('correct' | 'incorrect' | null)[]>(new Array(mockQuestions.length).fill(null));
   const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>(new Array(mockQuestions.length).fill(false));
+  const [autoProgressTimer, setAutoProgressTimer] = useState<NodeJS.Timeout | null>(null);
+
+  const infoBtnRef = useRef<HTMLButtonElement>(null);
+  const paletteRef = useRef<HTMLDivElement>(null);
 
   const answeredCount = userAnswers.filter(answer => answer !== null && answer.length > 0).length;
   const progressPercentage = (answeredCount / mockQuestions.length) * 100;
 
+  // Effect for window resize
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
@@ -128,10 +133,12 @@ const ExamPage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Effect for updating palette position
   useEffect(() => {
     updatePalettePosition();
   }, [showPalette]);
 
+  // Effect for timer
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (!showResult) {
@@ -149,6 +156,7 @@ const ExamPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [showResult]);
 
+  // Effect for handling clicks outside the palette
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (showPalette && 
@@ -165,6 +173,7 @@ const ExamPage: React.FC = () => {
     };
   }, [showPalette]);
 
+  // Function to update palette position
   const updatePalettePosition = () => {
     if (infoBtnRef.current && windowWidth >= 640) {
       const rect = infoBtnRef.current.getBoundingClientRect();
@@ -175,11 +184,13 @@ const ExamPage: React.FC = () => {
     }
   };
 
+  // Function to toggle dark mode
   const toggleTheme = () => {
     setIsDarkMode(prevMode => !prevMode);
     document.body.classList.toggle('dark');
   };
 
+  // Function to handle user answers
   const handleAnswer = (optionIndex: number) => {
     const currentQuestion = mockQuestions[currentQuestionIndex];
     const newAnswers = [...userAnswers];
@@ -195,7 +206,6 @@ const ExamPage: React.FC = () => {
         newAnswers[currentQuestionIndex] = [...currentAnswer, optionIndex];
       }
 
-      // Check if the selected option is correct
       if (currentQuestion.correctAnswer.includes(optionIndex)) {
         newAnswerStatus[currentQuestionIndex] = 'correct';
       } else {
@@ -205,24 +215,43 @@ const ExamPage: React.FC = () => {
       if (answeredQuestions[currentQuestionIndex]) return;
       newAnswers[currentQuestionIndex] = [optionIndex];
       newAnswerStatus[currentQuestionIndex] = optionIndex === currentQuestion.correctAnswer ? 'correct' : 'incorrect';
-
+  
       const newAnsweredQuestions = [...answeredQuestions];
       newAnsweredQuestions[currentQuestionIndex] = true;
       setAnsweredQuestions(newAnsweredQuestions);
+  
+      // Trigger auto-progression for non-last questions
+      if (currentQuestionIndex < mockQuestions.length - 1) {
+        if (autoProgressTimer) clearTimeout(autoProgressTimer);
+        const timer = setTimeout(() => {
+          handleNext();
+        }, 500);
+        setAutoProgressTimer(timer);
+      }
     }
 
     setUserAnswers(newAnswers);
     setAnswerStatus(newAnswerStatus);
   };
+
+  useEffect(() => {
+    return () => {
+      if (autoProgressTimer) clearTimeout(autoProgressTimer);
+    };
+  }, [autoProgressTimer]);
+
+  // Functions for navigation and exam control
   const handleNext = () => {
-    if (canProceed && currentQuestionIndex < mockQuestions.length - 1) {
+    if (currentQuestionIndex < mockQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      if (autoProgressTimer) clearTimeout(autoProgressTimer);
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
+      if (autoProgressTimer) clearTimeout(autoProgressTimer);
     }
   };
 
@@ -238,6 +267,7 @@ const ExamPage: React.FC = () => {
     );
   };
 
+  // Helps to convert time format to minutes and seconds
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -269,6 +299,7 @@ const ExamPage: React.FC = () => {
     }
   };
 
+  // Question Palette component
   const QuestionPalette = () => {
     const isSmallScreen = windowWidth < 640;
     return(
@@ -331,6 +362,7 @@ const ExamPage: React.FC = () => {
     ); 
   };
 
+  // Render result page if exam is finished
   if (showResult) {
     const attemptedQuestions = userAnswers.filter(answer => answer !== null && answer.length > 0).length;
     const correctAnswers = userAnswers.filter((_, index) => isAnswerCorrect(index)).length;
@@ -355,7 +387,7 @@ const ExamPage: React.FC = () => {
 
   const currentQuestion = mockQuestions[currentQuestionIndex];
 
-  
+  // Main component render
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gradient-to-br from-purple-50 to-white'}`}>
       <nav className={`fixed top-0 left-0 right-0 z-10 ${isDarkMode ? 'bg-gray-800' : 'bg-gradient-to-r from-purple-600 to-purple-400'} shadow-md p-2 sm:p-4`}>
@@ -485,7 +517,6 @@ const ExamPage: React.FC = () => {
             )}
           </div>
   
-          {/* Progress bar */}
           <div className="mt-4 w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
             <div 
               className="bg-purple-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
